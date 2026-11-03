@@ -3,7 +3,7 @@
 ## 📌 Overview
 This project uses **MIMIC-IV** clinical data to predict **acute kidney injury (AKI) within 7 days** in patients with **acute myocardial infarction (AMI)**, using clinical information collected around the first **12 hours of ICU admission**. The model is trained and internally validated using the **MIMIC-IV** database, with external validation performed on an independent dataset from the **eICU** database.
 
-**Live Web Application:** [kidney-injury-prediction.streamlit.app](https://kidney-injury-prediction.streamlit.app/)
+**Live Web Application:** https://thainq-early-kidney-prediction.streamlit.app/
 
 
 ## 🛠️ Pipeline
