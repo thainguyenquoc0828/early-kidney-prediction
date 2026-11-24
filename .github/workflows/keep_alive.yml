@@ -24,28 +24,60 @@ jobs:
       - name: Visit Streamlit App
         run: |
           python - <<'PY'
+          import time
           from playwright.sync_api import sync_playwright
 
           url = "https://thainq-early-kidney-prediction.streamlit.app/"
 
           with sync_playwright() as p:
               browser = p.chromium.launch(headless=True)
-              page = browser.new_page()
-              page.goto(url, timeout=120000)
-              page.wait_for_timeout(10000)
-
-              wake_button = page.get_by_role(
-                  "button", name="Yes, get this app back up!"
+              page = browser.new_page(
+                  viewport={"width": 1920, "height": 1080}
               )
 
-              if wake_button.is_visible():
-                  wake_button.click()
-                  page.wait_for_timeout(60000)
+              try:
+                  page.goto(url, timeout=120000)
 
-              page.locator('[data-testid="stAppViewContainer"]').wait_for(
-                  timeout=120000
-              )
+                  heading = page.get_by_role(
+                      "heading", name="AKI Risk Prediction"
+                  )
 
-              print("Streamlit app loaded successfully.")
-              browser.close()
+                  wake_button = page.get_by_role(
+                      "button", name="Yes, get this app back up!"
+                  )
+
+                  deadline = time.monotonic() + 240
+
+                  while time.monotonic() < deadline:
+                      if heading.is_visible():
+                          print("Streamlit app is awake and accessible.")
+                          break
+
+                      if wake_button.is_visible():
+                          print("App is sleeping. Waking it up...")
+                          wake_button.click(timeout=10000)
+
+                      page.wait_for_timeout(5000)
+                  else:
+                      raise RuntimeError("App did not become ready.")
+
+                  page.get_by_role(
+                      "button", name="Predict AKI", exact=True
+                  ).wait_for(timeout=30000)
+
+                  print("SUCCESS: AKI Prediction app loaded.")
+
+              finally:
+                  print("Final URL:", page.url)
+                  print("Page title:", page.title())
+                  page.screenshot(path="streamlit-status.png")
+                  browser.close()
           PY
+
+      - name: Upload Screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamlit-status
+          path: streamlit-status.png
+          retention-days: 3
